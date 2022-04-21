@@ -1,0 +1,39 @@
+module "subnet_reuse" {
+  source              = "../../../../modules/datasources/subnet_reuse/"
+  for_each            = var.server_specifications
+  subnet_name         = each.value.subnet
+  vnet_name           = var.vnet_name
+  resource_group_name = var.resource_group_name
+}
+module "support_virtual_machine" {
+  source                           = "../../../../modules/virtual_machine"
+  for_each                         = var.server_specifications
+  resource_group_name              = module.resource_group[each.value.tag_service_name].resource_group_name
+  location                         = var.location
+  service_name                     = each.value.tag_service_name
+  location_id                      = var.location_id
+  name                             = each.key
+  size                             = each.value.size
+  source_image_reference_version   = each.value.version
+  source_image_reference_publisher = each.value.publisher
+  source_image_reference_offer     = each.value.offer
+  admin_username                   = var.admin_username
+  admin_password                   = var.admin_password
+  availability_set_id              = module.support_availability_set["${each.value.tag_service_name}.${each.value.avl_number}"].availability_set_id
+  ip_configuration_subnet_id       = module.subnet_reuse[each.key].subnetid.id
+  #ip_configuration_private_ip_address_allocation =  ""  #each.value.private_ip_address_allocation
+  ip_configuration_private_ip_address = each.value.private_ip_address
+  source_image_reference_sku          = each.value.sku
+  tag_b_unit                          = var.tag_b_unit
+  tag_cc                              = var.tag_cc
+  tag_costcenter                      = var.tag_costcenter
+  tag_data_classification             = var.tag_data_classification
+  tag_environment                     = var.tag_environment
+  tag_project_num                     = var.tag_project_num
+  tag_service_name                    = each.value.tag_service_name
+  tag_deployment_ref                  = var.tag_deployment_ref
+  tag_service_application_name        = each.value.tag_service_application_name
+  tag_service_tier                    = var.tag_service_tier
+  b_unit_id                           = var.b_unit_id
+  environment_id                      = var.environment_id
+}
